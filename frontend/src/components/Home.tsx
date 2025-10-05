@@ -1140,7 +1140,6 @@ const Home: React.FC = () => {
       secretDetectorRef.current.registerClick();
     }
   };
-  };
 
   const refreshData = async () => {
     setLoading(true);
@@ -1192,7 +1191,7 @@ const Home: React.FC = () => {
         } catch (error) {
           console.warn('Failed to request notification permission:', error);
         }
-        console.log('✅ Notification Service initialized successfully');
+        console.log(' Notification Service initialized successfully');
         
         // Initialize Secret Click Detector
         console.log('🔧 Initializing Secret Click Detector...');
@@ -1404,17 +1403,50 @@ const Home: React.FC = () => {
                 className="location-dropdown-new"
               >
                 {userLocation && (
-                  <option value={userLocation.city}>📍 {userLocation.city} (Your Location)</option>
+                  <option value={userLocation.city}> {userLocation.city} (Your Location)</option>
                 )}
                 <option value="New York">New York</option>
                 <option value="Los Angeles">Los Angeles</option>
+                <option value="Chicago">Chicago</option>
+                <option value="Houston">Houston</option>
+                <option value="Phoenix">Phoenix</option>
+                <option value="San Diego">San Diego</option>
+                <option value="Dallas">Dallas</option>
+                <option value="San Jose">San Jose</option>
+                <option value="Austin">Austin</option>
+                <option value="Jacksonville">Jacksonville</option>
+                <option value="Fort Worth">Fort Worth</option>
+                <option value="Columbus">Columbus</option>
+                <option value="San Francisco">San Francisco</option>
+                <option value="Charlotte">Charlotte</option>
+                <option value="Indianapolis">Indianapolis</option>
+                <option value="Seattle">Seattle</option>
+                <option value="Detroit">Detroit</option>
+                <option value="Nashville">Nashville</option>
+                <option value="Portland">Portland</option>
+                <option value="Memphis">Memphis</option>
+                <option value="Oklahoma City">Oklahoma City</option>
+                <option value="Las Vegas">Las Vegas</option>
+                <option value="Louisville">Louisville</option>
+                <option value="Baltimore">Baltimore</option>
+                <option value="Milwaukee">Milwaukee</option>
+                <option value="Mesa">Mesa</option>
+                <option value="Sacramento">Sacramento</option>
+                <option value="Atlanta">Atlanta</option>
+                <option value="Kansas City">Kansas City</option>
+                <option value="Colorado Springs">Colorado Springs</option>
+                <option value="Miami">Miami</option>
+                <option value="Raleigh">Raleigh</option>
+                <option value="Arlington">Arlington</option>
+                <option value="Tampa">Tampa</option>
+                <option value="New Orleans">New Orleans</option>
+                <option value="Wichita">Wichita</option>
+                <option value="Cleveland">Cleveland</option>
                 <option value="London">London</option>
                 <option value="Tokyo">Tokyo</option>
                 <option value="Sydney">Sydney</option>
                 <option value="Delhi">Delhi</option>
                 <option value="Berlin">Berlin</option>
-                <option value="Mumbai">Mumbai</option>
-                <option value="Bangalore">Bangalore</option>
                 <option value="Paris">Paris</option>
                 <option value="Singapore">Singapore</option>
               </select>

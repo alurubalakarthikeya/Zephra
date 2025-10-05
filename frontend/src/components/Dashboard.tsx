@@ -591,7 +591,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {error && (
+{/*       {error && (
         <div className="error-banner">
           <div className="error-banner-content">
             <span className="error-banner-text">{error}</span>
@@ -600,7 +600,7 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Header */}
       <div className="dashboard-header">
