@@ -1,6 +1,6 @@
 // API Configuration for different environments
 export const config = {
-  apiBaseUrl: import.meta.env?.VITE_API_BASE_URL || 'https://zephra.onrender.com',
+  apiBaseUrl: 'https://zephra.onrender.com', // Hardcoded to ensure correct API URL
   appTitle: import.meta.env?.VITE_APP_TITLE || 'Zephra - Air Quality Monitoring',
   appVersion: import.meta.env?.VITE_APP_VERSION || '2.0.0',
   isDevelopment: import.meta.env?.DEV || false,
