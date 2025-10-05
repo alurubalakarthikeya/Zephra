@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Line, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -17,6 +17,7 @@ import {
 import AQIForecast from "./AQIForecast";
 import "./Dashboard.css";
 import { endpoints } from "../config/api";
+import BackendModeManager, { type BackendMode } from '../services/BackendModeManager';
 
 ChartJS.register(
   CategoryScale,
@@ -117,6 +118,10 @@ const Dashboard: React.FC = () => {
     | "ml-forecast"
   >("overview");
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  
+  // Backend mode management
+  const [backendMode, setBackendMode] = useState<BackendMode>('api');
+  const backendManagerRef = useRef<BackendModeManager | null>(null);
   const [userCoordinates, setUserCoordinates] = useState<{
     lat: number;
     lon: number;
@@ -124,8 +129,36 @@ const Dashboard: React.FC = () => {
   const [geoLocationName, setGeoLocationName] = useState<string>("");
 
   useEffect(() => {
+    // Initialize BackendModeManager
+    backendManagerRef.current = BackendModeManager.getInstance();
+    const currentMode = backendManagerRef.current.getCurrentMode();
+    setBackendMode(currentMode);
+    
     fetchAvailableLocations();
   }, []);
+
+  // Listen for backend mode changes from other components
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (backendManagerRef.current) {
+        const newMode = backendManagerRef.current.getCurrentMode();
+        setBackendMode(newMode);
+        // Refresh data when backend mode changes
+        fetchDashboardData();
+      }
+    };
+
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events (for same-tab changes)
+    window.addEventListener('backendModeChanged', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('backendModeChanged', handleStorageChange);
+    };
+  }, [selectedLocation]);
 
   // Get user's current location when useCurrentLocation is enabled
   useEffect(() => {
@@ -140,13 +173,31 @@ const Dashboard: React.FC = () => {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             );
-            const data = await response.json();
-            const locationName =
-              data.address?.city ||
-              data.address?.town ||
-              data.address?.village ||
-              data.display_name.split(",")[0];
-            setGeoLocationName(locationName);
+            
+            if (response.ok) {
+              const text = await response.text();
+              if (!text.trim()) {
+                throw new Error('Empty response from geocoding API');
+              }
+              
+              try {
+                const data = JSON.parse(text);
+                const locationName =
+                  data.address?.city ||
+                  data.address?.town ||
+                  data.address?.village ||
+                  data.display_name.split(",")[0];
+                setGeoLocationName(locationName);
+              } catch (parseError) {
+                console.error("❌ JSON Parse Error:", parseError);
+                console.error("❌ Response Text:", text.substring(0, 100) + '...');
+                setGeoLocationName(
+                  `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`
+                );
+              }
+            } else {
+              throw new Error(`Geocoding API failed: ${response.status}`);
+            }
           } catch (err) {
             console.error("Error getting location name:", err);
             setGeoLocationName(
@@ -269,18 +320,13 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `https://zephra.onrender.com/api/dashboard?location=${encodeURIComponent(
-          selectedLocation
-        )}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.status}`);
+      // Use BackendModeManager for data fetching
+      if (!backendManagerRef.current) {
+        throw new Error('BackendModeManager not initialized');
       }
 
-      const result = await response.json();
-
+      const result = await backendManagerRef.current.fetchDashboardData(selectedLocation);
+      
       if (!result || Object.keys(result).length === 0) {
         throw new Error("No data received from server");
       }
