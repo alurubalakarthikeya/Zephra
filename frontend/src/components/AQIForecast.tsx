@@ -351,12 +351,12 @@ const AQIForecast: React.FC<AQIForecastProps> = ({
         <div className="header-left-section">
           <h1 className="main-title">24-Hour AQI Forecast</h1>
         </div>
-        <button
+{/*         <button
           className="home-btn"
           onClick={() => (window.location.href = "/")}
         >
           🔊 Home
-        </button>
+        </button> */}
       </div>
 
       {/* Update Times */}

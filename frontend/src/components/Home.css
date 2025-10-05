@@ -351,10 +351,10 @@
     left: 100%;
 }
 
-.mini-value {
-    font-size: 1.2rem;
+span.mini-value {
+    font-size: 2vh;
     font-weight: 700;
-    color: #1976d2;
+    color: #0b7ef1;
     line-height: 1;
 }
 
@@ -1253,13 +1253,16 @@
 
 .aqi-main-content {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     gap: 40px;
     align-items: center;
+    justify-items: center;
     transform: scale(0.95);
     opacity: 0.7;
     transition: all 0.5s ease-out;
     flex: 1;
+    width: 100%;
+    text-align: center;
 }
 
 .aqi-main-content.data-loaded {
@@ -1270,7 +1273,23 @@
 .aqi-visual {
     display: flex;
     align-items: center;
-    gap: 35px;
+    justify-content: center;
+}
+
+.aqi-description {
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.aqi-trend {
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .aqi-circle-container {
@@ -1294,29 +1313,70 @@
     backdrop-filter: blur(10px);
 }
 
-.aqi-ring {
-    position: absolute;
-    width: 180px;
-    height: 180px;
-    border: 2px solid;
-    border-radius: 50%;
-    opacity: 0.3;
-    animation: ring-pulse 3s ease-in-out infinite;
-}
-
 .aqi-number {
-    font-size: 3.2rem;
+    font-size: 2.2rem;
     font-weight: 800;
     line-height: 1;
     animation: number-count 2s ease-out;
 }
 
 .aqi-unit {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
     color: #1565c0;
     opacity: 0.8;
-    margin-top: 4px;
+    margin-top: 2px;
     font-weight: 600;
+}
+
+.pollutant-name {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .aqi-number {
+        font-size: 2.4rem;
+    }
+    
+    .aqi-unit {
+        font-size: 0.8rem;
+    }
+    
+    .pollutant-name {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .aqi-number {
+        font-size: 2rem;
+    }
+    
+    .aqi-unit {
+        font-size: 0.7rem;
+    }
+    
+    .pollutant-name {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .aqi-number {
+        font-size: 1.8rem;
+    }
+    
+    .aqi-unit {
+        font-size: 0.6rem;
+    }
+    
+    .pollutant-name {
+        font-size: 0.65rem;
+    }
 }
 
 .aqi-description {
@@ -1335,6 +1395,8 @@
     margin: 0 0 12px 0;
     font-size: 1rem;
     opacity: 0.8;
+    text-align: center;
+    line-height: 1.5;
 }
 
 .recommendation {
@@ -1653,13 +1715,22 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 1vh;
     font-weight: 700;
     font-family: "Montserrat", sans-serif;
 }
 
 .trend-indicator.improving {
     color: #4caf50;
+    font-size: 1.4vh;
+}
+
+.trend-indicator.worsening {
+    color: #f44336;
+    font-size: 1.4vh;
+}
+
+.trend-indicator.stable {
+    color: #2196f3;
     font-size: 1.4vh;
 }
 
@@ -2367,18 +2438,6 @@
     }
 }
 
-@keyframes ring-pulse {
-    0%,
-    100% {
-        opacity: 0.3;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.1;
-        transform: scale(1.05);
-    }
-}
-
 @keyframes pulse-dot {
     0%,
     100% {
@@ -2477,7 +2536,8 @@
     }
 
     .mini-value {
-        font-size: 1.1rem;
+        font-size: 1.8vh;
+        font-weight: 700;
     }
 
     .mini-label {
@@ -2523,6 +2583,8 @@
     .aqi-primary-card {
         padding: 30px 20px;
         margin: 0 5px;
+        height: auto;
+        min-height: auto;
     }
 
     .aqi-card-header {
@@ -2536,7 +2598,30 @@
 
     .aqi-main-content {
         grid-template-columns: 1fr;
-        gap: 30px;
+        grid-template-rows: auto auto auto;
+        gap: 25px;
+        align-items: center;
+        justify-items: stretch;
+        text-align: center;
+    }
+
+    .aqi-visual {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .aqi-description {
+        min-width: auto;
+        width: 100%;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .aqi-trend {
+        min-width: auto;
+        width: 100%;
+        align-items: center;
+        text-align: center;
     }
 
     .aqi-visual {
@@ -2556,11 +2641,6 @@
         height: 150px;
         align-self: center;
         margin: 10px auto;
-    }
-
-    .aqi-ring {
-        width: 170px;
-        height: 170px;
     }
 
     .aqi-number {
@@ -2773,7 +2853,8 @@
     }
 
     .mini-value {
-        font-size: 1rem;
+        font-size: 1.8vh;
+        font-weight: 700;
     }
 
     .mini-label {
@@ -2825,6 +2906,8 @@
     .aqi-primary-card {
         padding: 25px 16px;
         margin: 0 2px;
+        height: auto;
+        min-height: auto;
     }
 
     .header-left h2 {
@@ -2847,12 +2930,6 @@
         border-width: 5px;
         margin: 8px auto;
     }
-
-    .aqi-ring {
-        width: 150px;
-        height: 150px;
-    }
-
     .aqi-number {
         font-size: 2.2rem;
     }
@@ -2888,6 +2965,8 @@
     .quick-insight-card,
     .forecast-card {
         padding: 20px 16px;
+        height: auto;
+        min-height: 280px;
     }
 
     .location-selector {
@@ -3043,7 +3122,8 @@
     }
 
     .mini-value {
-        font-size: 0.9rem;
+        font-size: 1.8vh;
+        font-weight: 700;
     }
 
     .mini-label {
@@ -3144,6 +3224,8 @@
     .aqi-primary-card {
         padding: 20px 12px;
         margin: 0;
+        height: auto;
+        min-height: auto;
     }
 
     .header-left h2 {
@@ -3164,11 +3246,6 @@
         height: 115px;
         border-width: 4px;
         margin: 5px auto;
-    }
-
-    .aqi-ring {
-        width: 135px;
-        height: 135px;
     }
 
     .aqi-number {
@@ -3204,6 +3281,8 @@
     .quick-insight-card,
     .forecast-card {
         padding: 16px 12px;
+        height: auto;
+        min-height: 250px;
     }
 
     .insight-header h4,
@@ -3575,7 +3654,7 @@ html {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9999;
     animation: modalFadeIn 0.3s ease-out;
     padding: 40px 20px;
 }
@@ -5540,5 +5619,400 @@ html {
     
     .fullscreen-map-main {
         min-height: calc(100vh - 180px);
+    }
+}
+
+/* POLLUTANT CAROUSEL STYLES */
+.pollutant-carousel-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.swipe-container {
+    position: relative;
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.animated-circle {
+    transform: scale(1);
+    animation: pulseGlow 3s ease-in-out infinite;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 140px;
+    border: 4px solid;
+    border-radius: 50%;
+    margin: 0 auto;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .animated-circle {
+        width: 160px;
+        height: 160px;
+        border-width: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .animated-circle {
+        width: 140px;
+        height: 140px;
+        border-width: 4px;
+    }
+}
+
+@media (max-width: 360px) {
+    .animated-circle {
+        width: 120px;
+        height: 120px;
+        border-width: 3px;
+    }
+}
+
+@media (max-width: 768px) {
+    .animated-circle {
+        width: 140px;
+        height: 140px;
+        border-width: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .animated-circle {
+        width: 120px;
+        height: 120px;
+        border-width: 4px;
+    }
+}
+
+@media (max-width: 360px) {
+    .animated-circle {
+        width: 100px;
+        height: 100px;
+        border-width: 3px;
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 30px rgba(77, 160, 219, 0.3);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 40px rgba(77, 160, 219, 0.5);
+    }
+}
+
+.pollutant-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.progress-ring {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    pointer-events: none;
+}
+
+.progress-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+/* Swipe hint indicators */
+.swipe-hint {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    opacity: 0;
+    color: rgba(255, 255, 255, 0.5);
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.swipe-hint.left-hint {
+    left: -40px;
+    animation-delay: 0s;
+}
+
+.swipe-hint.right-hint {
+    right: -40px;
+    animation-delay: 1s;
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.8);
+    }
+    50% {
+        opacity: 0.6;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+.swipe-container:hover .swipe-hint {
+    opacity: 0.4;
+    animation-play-state: paused;
+}
+
+/* Pollutant indicator dots */
+.pollutant-dots {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.pollutant-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pollutant-dots .dot.active {
+    transform: scale(1.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+/* Remove old navigation styles */
+.pollutant-navigation {
+    display: none;
+}
+
+.pollutant-nav-btn {
+    display: none;
+}
+
+.auto-slide-toggle {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.8);
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.auto-slide-toggle:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.auto-slide-toggle.active {
+    color: #1976d2;
+    border-color: rgba(77, 160, 219, 0.4);
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.auto-slide-toggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Smooth transitions for content changes */
+.aqi-description .status-text,
+.aqi-description .status-details p,
+.aqi-description .recommendation {
+    transition: all 0.5s ease;
+}
+
+/* Enhanced AQI circle for better animation */
+.aqi-circle {
+    position: relative;
+    overflow: visible;
+}
+
+.aqi-circle::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    background: inherit;
+    filter: blur(8px);
+    opacity: 0.3;
+    z-index: -1;
+}
+
+/* Stable circle container */
+.aqi-circle-container {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .aqi-circle-container {
+        width: 200px;
+        height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .aqi-circle-container {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+@media (max-width: 360px) {
+    .aqi-circle-container {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+/* Responsive design for pollutant carousel */
+@media (max-width: 768px) {
+    .swipe-hint {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .swipe-hint.left-hint {
+        left: -25px;
+    }
+    
+    .swipe-hint.right-hint {
+        right: -25px;
+    }
+    
+    .auto-slide-toggle {
+        width: 36px;
+        height: 36px;
+        top: -12px;
+        right: -12px;
+    }
+    
+    .auto-slide-toggle svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .pollutant-name {
+        font-size: 0.75rem;
+    }
+    
+    .pollutant-dots {
+        bottom: -25px;
+    }
+    
+    .pollutant-dots .dot {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .aqi-number {
+        font-size: 2.2rem;
+    }
+    
+    .aqi-unit {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .swipe-hint {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .swipe-hint.left-hint {
+        left: -20px;
+    }
+    
+    .swipe-hint.right-hint {
+        right: -20px;
+    }
+    
+    .auto-slide-toggle {
+        width: 32px;
+        height: 32px;
+        top: -10px;
+        right: -10px;
+    }
+    
+    .auto-slide-toggle svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .pollutant-dots {
+        bottom: -20px;
+        gap: 5px;
+    }
+    
+    .pollutant-dots .dot {
+        width: 5px;
+        height: 5px;
+    }
+    
+    .aqi-number {
+        font-size: 1.8rem;
+    }
+    
+    .aqi-unit {
+        font-size: 0.7rem;
+    }
+    
+    .pollutant-name {
+        font-size: 0.65rem;
     }
 }
