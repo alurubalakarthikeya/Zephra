@@ -100,7 +100,9 @@ class BackendModeManager {
       // Build API URL - Use the config API base URL
       const apiUrl = `${config.apiBaseUrl}/api/dashboard${locationParam}`;
       
-      console.log('📡 API Request:', apiUrl);
+      // Temporary debug log for Vercel troubleshooting (remove after fix)
+      console.log('� Vercel Debug - API URL:', apiUrl);
+      console.log('🔧 Vercel Debug - Config Base:', config.apiBaseUrl);
       
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), 30000); // Increased timeout for Render
@@ -118,21 +120,12 @@ class BackendModeManager {
       
       window.clearTimeout(timeoutId);
       
-      console.log('📊 Response status:', response.status);
-      console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
-      console.log('📊 Response URL:', response.url);
-      console.log('📊 Response redirected:', response.redirected);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText.substring(0, 500));
         throw new Error(`API failed: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
       }
       
       const text = await response.text();
-      console.log('📊 Raw response length:', text.length);
-      console.log('📊 Response content-type:', response.headers.get('content-type'));
-      console.log('📊 Response preview:', text.substring(0, 300) + '...');
       
       if (!text.trim()) {
         throw new Error('Empty response from API');
@@ -141,7 +134,6 @@ class BackendModeManager {
       // Check if response looks like HTML (error page)
       if (text.trim().toLowerCase().startsWith('<!doctype') || text.trim().startsWith('<html')) {
         console.error('❌ Received HTML instead of JSON. This might be a CORS error or redirect.');
-        console.error('❌ Full HTML response:', text);
         throw new Error('API returned HTML error page instead of JSON data. Check CORS configuration on server.');
       }
       
@@ -149,10 +141,8 @@ class BackendModeManager {
       try {
         data = JSON.parse(text);
       } catch (parseError) {
-        console.error('❌ JSON Parse Error:', parseError);
-        console.error('❌ Response Text (first 1000 chars):', text.substring(0, 1000));
-        console.error('❌ Response Content-Type:', response.headers.get('content-type'));
-        throw new Error(`Invalid JSON response from API. Content-Type: ${response.headers.get('content-type')}. Parse Error: ${parseError}`);
+        console.error('❌ JSON Parse Error - Response Text (first 500 chars):', text.substring(0, 500));
+        throw new Error(`Invalid JSON response from API. Parse Error: ${parseError}`);
       }
       
       return data;
