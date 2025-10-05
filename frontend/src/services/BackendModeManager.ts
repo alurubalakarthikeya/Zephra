@@ -34,7 +34,6 @@ class BackendModeManager {
       if (stored) {
         const state: BackendState = JSON.parse(stored);
         this.currentMode = state.mode;
-        console.log(`🔄 Loaded global backend mode: ${this.currentMode.toUpperCase()}`);
       }
     } catch (error) {
       console.warn('Failed to load stored backend mode:', error);
@@ -49,7 +48,6 @@ class BackendModeManager {
         switchCount: this.getSwitchCount() + 1
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
-      console.log(`💾 Saved global backend mode: ${this.currentMode.toUpperCase()}`);
     } catch (error) {
       console.warn('Failed to save backend mode:', error);
     }
@@ -69,7 +67,6 @@ class BackendModeManager {
       detail: { mode: this.currentMode, previousMode } 
     }));
     
-    console.log(`🔄 Backend toggled: ${previousMode.toUpperCase()} → ${this.currentMode.toUpperCase()}`);
     return this.currentMode;
   }
 
@@ -88,12 +85,9 @@ class BackendModeManager {
 
   public async fetchDashboardData(location?: string, userLocation?: any): Promise<any> {
     if (this.currentMode === 'mock') {
-      console.log('📊 Fetching from MOCK DATA service');
       return this.mockService.getDashboardData(location);
     }
 
-    console.log('📊 Fetching from LIVE API service');
-    
     try {
       // Determine the location parameter (matching original logic)
       let locationParam = '';
@@ -115,34 +109,40 @@ class BackendModeManager {
         signal: controller.signal,
         headers: { 
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Origin': window.location.origin
         },
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'omit'
       });
       
       window.clearTimeout(timeoutId);
       
       console.log('📊 Response status:', response.status);
-      console.log('📊 Response headers:', response.headers.get('content-type'));
+      console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📊 Response URL:', response.url);
+      console.log('📊 Response redirected:', response.redirected);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText);
+        console.error('❌ API Error Response:', errorText.substring(0, 500));
         throw new Error(`API failed: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
       }
       
       const text = await response.text();
       console.log('📊 Raw response length:', text.length);
-      console.log('📊 Response preview:', text.substring(0, 200) + '...');
+      console.log('📊 Response content-type:', response.headers.get('content-type'));
+      console.log('📊 Response preview:', text.substring(0, 300) + '...');
       
       if (!text.trim()) {
         throw new Error('Empty response from API');
       }
       
       // Check if response looks like HTML (error page)
-      if (text.trim().startsWith('<')) {
-        console.error('❌ Received HTML instead of JSON:', text.substring(0, 300));
-        throw new Error('API returned HTML error page instead of JSON data');
+      if (text.trim().toLowerCase().startsWith('<!doctype') || text.trim().startsWith('<html')) {
+        console.error('❌ Received HTML instead of JSON. This might be a CORS error or redirect.');
+        console.error('❌ Full HTML response:', text);
+        throw new Error('API returned HTML error page instead of JSON data. Check CORS configuration on server.');
       }
       
       let data;
@@ -150,12 +150,11 @@ class BackendModeManager {
         data = JSON.parse(text);
       } catch (parseError) {
         console.error('❌ JSON Parse Error:', parseError);
-        console.error('❌ Response Text:', text.substring(0, 500));
+        console.error('❌ Response Text (first 1000 chars):', text.substring(0, 1000));
         console.error('❌ Response Content-Type:', response.headers.get('content-type'));
         throw new Error(`Invalid JSON response from API. Content-Type: ${response.headers.get('content-type')}. Parse Error: ${parseError}`);
       }
       
-      console.log('✅ Live API data received');
       return data;
       
     } catch (error) {

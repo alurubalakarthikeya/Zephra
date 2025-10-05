@@ -1189,8 +1189,6 @@ const Home: React.FC = () => {
               // Refresh data with new backend
               await fetchAirQualityData();
               
-              console.log(`🔄 Backend switched to: ${newMode.toUpperCase()}`);
-              
             } catch (error) {
               console.error('Error during backend switch:', error);
             }
