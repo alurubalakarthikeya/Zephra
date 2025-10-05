@@ -173,13 +173,31 @@ const Dashboard: React.FC = () => {
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             );
-            const data = await response.json();
-            const locationName =
-              data.address?.city ||
-              data.address?.town ||
-              data.address?.village ||
-              data.display_name.split(",")[0];
-            setGeoLocationName(locationName);
+            
+            if (response.ok) {
+              const text = await response.text();
+              if (!text.trim()) {
+                throw new Error('Empty response from geocoding API');
+              }
+              
+              try {
+                const data = JSON.parse(text);
+                const locationName =
+                  data.address?.city ||
+                  data.address?.town ||
+                  data.address?.village ||
+                  data.display_name.split(",")[0];
+                setGeoLocationName(locationName);
+              } catch (parseError) {
+                console.error("❌ JSON Parse Error:", parseError);
+                console.error("❌ Response Text:", text.substring(0, 100) + '...');
+                setGeoLocationName(
+                  `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`
+                );
+              }
+            } else {
+              throw new Error(`Geocoding API failed: ${response.status}`);
+            }
           } catch (err) {
             console.error("Error getting location name:", err);
             setGeoLocationName(

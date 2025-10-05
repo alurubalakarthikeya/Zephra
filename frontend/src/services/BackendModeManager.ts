@@ -124,7 +124,20 @@ class BackendModeManager {
         throw new Error(`API failed: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const text = await response.text();
+      if (!text.trim()) {
+        throw new Error('Empty response from API');
+      }
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError);
+        console.error('❌ Response Text:', text);
+        throw new Error(`Invalid JSON response: ${parseError}`);
+      }
+      
       console.log('✅ Live API data received');
       return data;
       

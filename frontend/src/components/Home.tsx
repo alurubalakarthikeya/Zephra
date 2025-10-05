@@ -1033,8 +1033,20 @@ const Home: React.FC = () => {
       );
       
       if (response.ok) {
-        const data = await response.json();
-        return data[0]?.name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+        const text = await response.text();
+        if (!text.trim()) {
+          console.warn('Empty response from geocoding API');
+          return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        }
+        
+        try {
+          const data = JSON.parse(text);
+          return data[0]?.name || `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+        } catch (parseError) {
+          console.error('❌ Geocoding JSON Parse Error:', parseError);
+          console.error('❌ Response Text:', text.substring(0, 100) + '...');
+          return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        }
       }
     } catch (error) {
       console.error('Reverse geocoding failed:', error);
@@ -1680,7 +1692,7 @@ const Home: React.FC = () => {
             <div className="quick-insight-card">
               <div className="insight-header">
                 <h4>Health Map</h4>
-                <div className="health" style={{ color: getAQIColor(airQualityData?.aqi || 0), position: 'relative', cursor: 'pointer' }} onClick={handleHeartIconClick}>
+                <div className="health" style={{ color: getAQIColor(airQualityData?.aqi || 0), position: 'relative' }} onClick={handleHeartIconClick}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"/>
               </svg>
