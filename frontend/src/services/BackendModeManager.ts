@@ -97,17 +97,15 @@ class BackendModeManager {
         locationParam = `?location=${encodeURIComponent(location || 'New York')}`;
       }
       
-      // Build API URL - Use the config API base URL
-      const apiUrl = `${config.apiBaseUrl}/api/dashboard${locationParam}`;
+      // RUNTIME URL CONSTRUCTION - bypasses ALL environment variables
+      const RENDER_API = 'https://' + 'zephra.onrender.com' + '/api/dashboard' + locationParam;
       
-      // Temporary debug log for Vercel troubleshooting (remove after fix)
-      console.log('� Vercel Debug - API URL:', apiUrl);
-      console.log('🔧 Vercel Debug - Config Base:', config.apiBaseUrl);
+      console.log('🔧 FORCED API URL:', RENDER_API);
       
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 30000); // Increased timeout for Render
+      const timeoutId = window.setTimeout(() => controller.abort(), 30000);
       
-      const response = await fetch(apiUrl, {
+      const response = await fetch(RENDER_API, {
         signal: controller.signal,
         headers: { 
           'Content-Type': 'application/json',
