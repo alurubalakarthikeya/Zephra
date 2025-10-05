@@ -1,23 +1,26 @@
 // API Configuration for different environments
-// Completely hardcoded to prevent ANY environment variable overrides
-const getApiBaseUrl = (): string => {
-  // Force the Render API URL regardless of any environment variables
-  return 'https://zephra.onrender.com';
+// RUNTIME-ONLY URL determination to completely bypass build-time env vars
+const getRuntimeApiUrl = (): string => {
+  // Construct the URL at runtime to avoid ANY build-time substitution
+  const baseUrl = 'https://' + 'zephra.onrender.com';
+  return baseUrl;
 };
 
 export const config = {
-  apiBaseUrl: getApiBaseUrl(), // Function call to prevent build-time substitution
-  appTitle: import.meta.env?.VITE_APP_TITLE || 'Zephra - Air Quality Monitoring',
-  appVersion: import.meta.env?.VITE_APP_VERSION || '2.0.0',
-  isDevelopment: import.meta.env?.DEV || false,
-  isProduction: import.meta.env?.PROD || true,
+  // This will be evaluated at runtime, not build time
+  get apiBaseUrl() { 
+    return getRuntimeApiUrl(); 
+  },
+  appTitle: 'Zephra - Air Quality Monitoring',
+  appVersion: '2.0.0',
+  isDevelopment: false,
+  isProduction: true,
 } as const;
 
-// Debug information (remove after fixing Vercel)
-console.log('🔧 API Config Debug:', {
+// Debug information to verify the URL
+console.log('🔧 Runtime API Config Debug:', {
   apiBaseUrl: config.apiBaseUrl,
-  envApiUrl: import.meta.env?.VITE_API_BASE_URL,
-  envMode: import.meta.env?.MODE,
+  constructedUrl: getRuntimeApiUrl(),
   location: window.location.origin
 });
 
