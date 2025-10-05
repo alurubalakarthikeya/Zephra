@@ -1,5 +1,6 @@
 // Backend Mode Manager - Handles switching between API and Mock data
 import DataProvider from './DataProvider';
+import { config } from '../config/api';
 
 export type BackendMode = 'api' | 'mock';
 
@@ -102,31 +103,46 @@ class BackendModeManager {
         locationParam = `?location=${encodeURIComponent(location || 'New York')}`;
       }
       
-      // Build API URL
-      const baseUrl = import.meta.env.MODE === 'production' 
-        ? window.location.origin 
-        : '';
-      const apiUrl = `${baseUrl}/api/dashboard${locationParam}`;
+      // Build API URL - Use the config API base URL
+      const apiUrl = `${config.apiBaseUrl}/api/dashboard${locationParam}`;
       
       console.log('📡 API Request:', apiUrl);
       
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 30000); // Increased timeout for Render
       
       const response = await fetch(apiUrl, {
         signal: controller.signal,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
       
       window.clearTimeout(timeoutId);
       
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response headers:', response.headers.get('content-type'));
+      
       if (!response.ok) {
-        throw new Error(`API failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        throw new Error(`API failed: ${response.status} ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
       }
       
       const text = await response.text();
+      console.log('📊 Raw response length:', text.length);
+      console.log('📊 Response preview:', text.substring(0, 200) + '...');
+      
       if (!text.trim()) {
         throw new Error('Empty response from API');
+      }
+      
+      // Check if response looks like HTML (error page)
+      if (text.trim().startsWith('<')) {
+        console.error('❌ Received HTML instead of JSON:', text.substring(0, 300));
+        throw new Error('API returned HTML error page instead of JSON data');
       }
       
       let data;
@@ -134,8 +150,9 @@ class BackendModeManager {
         data = JSON.parse(text);
       } catch (parseError) {
         console.error('❌ JSON Parse Error:', parseError);
-        console.error('❌ Response Text:', text);
-        throw new Error(`Invalid JSON response: ${parseError}`);
+        console.error('❌ Response Text:', text.substring(0, 500));
+        console.error('❌ Response Content-Type:', response.headers.get('content-type'));
+        throw new Error(`Invalid JSON response from API. Content-Type: ${response.headers.get('content-type')}. Parse Error: ${parseError}`);
       }
       
       console.log('✅ Live API data received');
