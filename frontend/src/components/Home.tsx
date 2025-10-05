@@ -114,9 +114,6 @@ const Home: React.FC = () => {
   // Fullscreen map state
   const [showFullscreenMap, setShowFullscreenMap] = useState(false);
   
-  // Health map highlight state
-  const [highlightHealthMap, setHighlightHealthMap] = useState(false);
-  
   // Pollutant carousel state
   const [currentPollutantIndex, setCurrentPollutantIndex] = useState(0);
   const [isAutoSliding, setIsAutoSliding] = useState(true);
@@ -1085,29 +1082,6 @@ const Home: React.FC = () => {
     setShowFullscreenMap(false);
   };
 
-  const handleViewMapClick = () => {
-    // Find the health map container and scroll to it
-    const healthMapElement = document.querySelector('.aqi-secondary-cards');
-    if (healthMapElement) {
-      healthMapElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-    } else {
-      // Fallback to scrolling to top if element not found
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    }
-    
-    // Highlight health map after a brief delay
-    setTimeout(() => {
-      setHighlightHealthMap(true);
-      // Let the animation complete its full cycle (2s) before removing highlight
-      setTimeout(() => {
-        setHighlightHealthMap(false);
-      }, 2000);
-    }, 300);
-  };
-
   // Secret Backend Switch Functions
   const handleSecretBackendSwitch = async () => {
     if (!backendManagerRef.current || !notificationServiceRef.current) {
@@ -1139,7 +1113,6 @@ const Home: React.FC = () => {
     if (secretDetectorRef.current) {
       secretDetectorRef.current.registerClick();
     }
-  };
   };
 
   const refreshData = async () => {
@@ -1714,7 +1687,7 @@ const Home: React.FC = () => {
           </div>
           
           <div className="aqi-secondary-cards">
-            <div className={`quick-insight-card ${highlightHealthMap ? 'highlight-map' : ''}`}>
+            <div className="quick-insight-card">
               <div className="insight-header">
                 <h4>Health Map</h4>
                 <div className="health" style={{ color: getAQIColor(airQualityData?.aqi || 0), position: 'relative' }} onClick={handleHeartIconClick}>
@@ -1728,7 +1701,7 @@ const Home: React.FC = () => {
                 <div className="map-preview">
                   <div className="map-header">
                     <span className="map-title">North America Air Quality</span>
-                    <button className="expand-map-btn" title="Expand Map" >
+                    <button className="expand-map-btn" title="Expand Map" onClick={openFullscreenMap}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="15,3 21,3 21,9"/>
                         <polyline points="9,21 3,21 3,15"/>
@@ -2004,10 +1977,18 @@ const Home: React.FC = () => {
 
       {/* Enhanced Quick Actions */}
       <section className="quick-actions">
-          <h3 className="section-title quick-title">Quick Actions</h3>
-
+        <div className="actions-header">
+          <h3 className="section-title">Quick Actions</h3>
+          <button className="view-all-btn">
+            View All
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+        
         <div className="actions-grid">
-          <button className="action-card primary" onClick={handleViewMapClick}>
+          <button className="action-card primary">
             <div className="action-content">
               <div className="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -2017,7 +1998,7 @@ const Home: React.FC = () => {
               </div>
               <div className="action-text action-text-left">
                 <span className="action-title">View Map</span>
-                <span className="action-subtitle">Interactive air quality map coming soon</span>
+                <span className="action-subtitle">Interactive air quality map</span>
               </div>
             </div>
             <div className="action-arrow">
@@ -2037,7 +2018,7 @@ const Home: React.FC = () => {
               </div>
               <div className="action-text action-text-left">
                 <span className="action-title">Set Alerts</span>
-                <span className="action-subtitle">Custom Push notifications for air quality</span>
+                <span className="action-subtitle">Custom notifications</span>
               </div>
             </div>
             <div className="action-arrow">
@@ -2060,7 +2041,7 @@ const Home: React.FC = () => {
               </div>
               <div className="action-text action-text-left">
                 <span className="action-title">Analytics</span>
-                <span className="action-subtitle">Detailed insights with graphs & predictions</span>
+                <span className="action-subtitle">Detailed insights</span>
               </div>
             </div>
             <div className="action-arrow">
@@ -2606,5 +2587,6 @@ const Home: React.FC = () => {
       )}
     </div>
   );
-};
+}
+
 export default Home;
