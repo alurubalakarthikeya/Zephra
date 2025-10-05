@@ -3,6 +3,9 @@ import './Home.css';
 import './LocationMap.css';
 import OfflineIndicator from './OfflineIndicator';
 import { ServiceManager } from '../services/ServiceManager';
+import BackendModeManager, { type BackendMode } from '../services/BackendModeManager';
+import ClickHandler from '../services/ClickHandler';
+import NotificationService from '../services/NotificationService';
 
 interface AirQualityData {
   aqi: number;
@@ -120,51 +123,28 @@ const Home: React.FC = () => {
   
   // Trend data state
   const [trendData, setTrendData] = useState<number[]>([]);
+  
+  // Secret backend switch state
+  const [backendMode, setBackendMode] = useState<BackendMode>('api');
+  const backendManagerRef = useRef<BackendModeManager | null>(null);
+  const secretDetectorRef = useRef<ClickHandler | null>(null);
+  const notificationServiceRef = useRef<NotificationService | null>(null);
 
   // Real API endpoints - Now connected to FastAPI backend
+  // Unified data fetching - Now uses BackendModeManager for API/Mock switching
   const fetchAirQualityData = async () => {
     console.log('🚀 Starting fetchAirQualityData for location:', currentLocation);
     
     try {
       setLoading(true);
       
-      // Determine the location parameter
-      let locationParam = '';
-      if (userLocation) {
-        locationParam = `?lat=${userLocation.latitude}&lon=${userLocation.longitude}&name=${encodeURIComponent(userLocation.city)}`;
-      } else {
-        // Use predefined location - exact match with backend AVAILABLE_LOCATIONS
-        locationParam = `?location=${encodeURIComponent(currentLocation)}`;
+      // Use BackendModeManager to fetch data (handles API vs Mock automatically)
+      if (!backendManagerRef.current) {
+        throw new Error('BackendModeManager not initialized');
       }
       
-      // Build API URL - handle both development and production
-      const baseUrl = import.meta.env.MODE === 'production' 
-        ? window.location.origin 
-        : '';
-      const apiUrl = `${baseUrl}/api/dashboard${locationParam}`;
-      
-      console.log('📡 Making API request to:', apiUrl);
-      
-      // Fetch real data from FastAPI backend with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const response = await fetch(apiUrl, {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      clearTimeout(timeoutId);
-      console.log('📊 API Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('✅ API Response data:', data);
+      const data = await backendManagerRef.current.fetchDashboardData(currentLocation, userLocation || undefined);
+      console.log('✅ Data fetched via BackendModeManager:', data);
       
       if (data.success && data.air_quality && data.air_quality.length > 0) {
         // Get the latest air quality data
@@ -188,7 +168,6 @@ const Home: React.FC = () => {
         
         // Extract trend data from historical air quality data
         if (data.air_quality.length > 1) {
-          // Get last 8 data points for 24h trend (assuming 3-hour intervals)
           const trendValues = data.air_quality
             .slice(-8)
             .map((item: any) => Number(item.aqi) || 0);
@@ -197,7 +176,7 @@ const Home: React.FC = () => {
           // Fallback: generate trend based on current value with some variance
           const currentValue = realData.aqi;
           const mockTrend = Array.from({ length: 8 }, (_, i) => {
-            const variance = (Math.random() - 0.5) * 20; // ±10 variation
+            const variance = (Math.random() - 0.5) * 20;
             return Math.max(0, Math.round(currentValue + variance));
           });
           setTrendData(mockTrend);
@@ -226,7 +205,6 @@ const Home: React.FC = () => {
             visibility: 10,
             windDirection: 'NW'
           };
-          console.log('🌤️ Setting fallback weather data:', fallbackWeather);
           setWeatherData(fallbackWeather);
         }
         
@@ -238,51 +216,39 @@ const Home: React.FC = () => {
           await serviceManagerRef.current.handleAirQualityUpdate(realData);
         }
         
-        // Track analytics event
-        if (serviceManagerRef.current) {
-          await serviceManagerRef.current.trackAnalyticsEvent({
-            type: 'air_quality_fetch',
-            location: realData.location,
-            aqi: realData.aqi,
-            timestamp: Date.now()
-          });
-        }
-        
-        console.log('✅ Real data fetched and processed successfully');
+        console.log('✅ Data fetched and processed successfully');
       } else {
-        throw new Error('Invalid data format received from API');
+        throw new Error('Invalid data format received from backend');
       }
     } catch (error) {
-      console.error('❌ Error fetching real air quality data:', error);
+      console.error('❌ Error fetching air quality data:', error);
       
       // Enhanced fallback to mock data - ensure data is always available
       const mockData: AirQualityData = {
-        aqi: Math.floor(Math.random() * 150) + 30, // 30-180 range
-        pm25: Math.floor(Math.random() * 40) + 10, // 10-50 range  
-        pm10: Math.floor(Math.random() * 60) + 20, // 20-80 range
-        o3: Math.floor(Math.random() * 120) + 30, // 30-150 range
-        no2: Math.floor(Math.random() * 80) + 15, // 15-95 range
-        so2: Math.floor(Math.random() * 60) + 10, // 10-70 range
-        co: Math.floor(Math.random() * 1500) + 500, // 500-2000 range
+        aqi: Math.floor(Math.random() * 150) + 30,
+        pm25: Math.floor(Math.random() * 40) + 10,
+        pm10: Math.floor(Math.random() * 60) + 20,
+        o3: Math.floor(Math.random() * 120) + 30,
+        no2: Math.floor(Math.random() * 80) + 15,
+        so2: Math.floor(Math.random() * 60) + 10,
+        co: Math.floor(Math.random() * 1500) + 500,
         location: currentLocation,
         timestamp: new Date().toISOString(),
         status: getAQIStatus(Math.floor(Math.random() * 150) + 30)
       };
       
-      console.log('⚠️ Using fallback mock data:', mockData);
       setAirQualityData(mockData);
       
       // Enhanced fallback weather data
       const mockWeatherData: WeatherData = {
-        temperature: Math.floor(Math.random() * 25) + 15, // 15-40°C
-        humidity: Math.floor(Math.random() * 40) + 40, // 40-80%
-        windSpeed: Math.floor(Math.random() * 20) + 5, // 5-25 km/h
-        pressure: Math.floor(Math.random() * 50) + 1000, // 1000-1050 hPa
-        visibility: Math.floor(Math.random() * 10) + 5, // 5-15 km
+        temperature: Math.floor(Math.random() * 25) + 15,
+        humidity: Math.floor(Math.random() * 40) + 40,
+        windSpeed: Math.floor(Math.random() * 20) + 5,
+        pressure: Math.floor(Math.random() * 50) + 1000,
+        visibility: Math.floor(Math.random() * 10) + 5,
         windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)]
       };
       
-      console.log('⚠️ Using fallback weather data:', mockWeatherData);
       setWeatherData(mockWeatherData);
       
       // Generate mock trend data
@@ -1104,6 +1070,39 @@ const Home: React.FC = () => {
     setShowFullscreenMap(false);
   };
 
+  // Secret Backend Switch Functions
+  const handleSecretBackendSwitch = async () => {
+    if (!backendManagerRef.current || !notificationServiceRef.current) {
+      return;
+    }
+
+    try {
+      // Toggle backend mode
+      const newMode = backendManagerRef.current.toggleMode();
+      setBackendMode(newMode);
+      
+      // Show notification with current backend
+      await notificationServiceRef.current.showBackendSwitchNotification(newMode);
+      
+      // Refresh data with new backend
+      await fetchAirQualityData();
+      
+    } catch (error) {
+      console.error('Error during backend switch:', error);
+    }
+  };
+
+  const handleHeartIconClick = (event: React.MouseEvent) => {
+    // Prevent any default behavior
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Register secret click
+    if (secretDetectorRef.current) {
+      secretDetectorRef.current.registerClick();
+    }
+  };
+
   const refreshData = async () => {
     setLoading(true);
     await fetchAirQualityData(); // This now fetches both air quality and weather data
@@ -1113,9 +1112,10 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    // Initialize Service Manager
+    // Initialize all services including secret backend switch
     const initializeServices = async () => {
       try {
+        // Initialize Service Manager
         serviceManagerRef.current = new ServiceManager();
         
         // Set up service callbacks
@@ -1134,17 +1134,63 @@ const Home: React.FC = () => {
         
         // Initialize all services
         await serviceManagerRef.current.initialize();
-        
-        // Get initial service status
         await serviceManagerRef.current.getStatus();
-        // Service status updated
+        console.log('✅ Service Manager initialized successfully');
         
-        console.log('Service Manager initialized successfully');
+        // Initialize Backend Mode Manager
+        backendManagerRef.current = BackendModeManager.getInstance();
+        const currentMode = backendManagerRef.current.getCurrentMode();
+        setBackendMode(currentMode);
+        console.log(`✅ Backend Mode Manager initialized (mode: ${currentMode.toUpperCase()})`);
         
-        // Don't get location automatically on page load
-        // Location will only be updated when user clicks the location button
+        // Initialize Notification Service
+        notificationServiceRef.current = NotificationService.getInstance();
+        
+        // Request notification permission
+        try {
+          const permission = await notificationServiceRef.current.requestPermission();
+          console.log(`📱 Notification permission: ${permission}`);
+        } catch (error) {
+          console.warn('Failed to request notification permission:', error);
+        }
+        console.log('✅ Notification Service initialized successfully');
+        
+        // Initialize Secret Click Detector
+        console.log('🔧 Initializing Secret Click Detector...');
+        secretDetectorRef.current = new ClickHandler(
+          async () => {
+            console.log('🎉 SECRET BACKEND SWITCH ACTIVATED!');
+            
+            if (!backendManagerRef.current || !notificationServiceRef.current) {
+              console.error('Backend services not initialized');
+              return;
+            }
+
+            try {
+              // Toggle backend mode
+              const newMode = backendManagerRef.current.toggleMode();
+              setBackendMode(newMode);
+              
+              // Show notification
+              await notificationServiceRef.current.showBackendSwitchNotification(newMode);
+              
+              // Refresh data with new backend
+              await fetchAirQualityData();
+              
+              console.log(`🔄 Backend switched to: ${newMode.toUpperCase()}`);
+              
+            } catch (error) {
+              console.error('Error during backend switch:', error);
+            }
+          },
+          () => {
+            // No visual feedback needed
+          }
+        );
+        console.log('✅ Secret Click Detector initialized successfully');
+        
       } catch (error) {
-        console.error('Failed to initialize Service Manager:', error);
+        console.error('❌ Failed to initialize services:', error);
       }
     };
     
@@ -1176,6 +1222,9 @@ const Home: React.FC = () => {
     return () => {
       if (serviceManagerRef.current) {
         serviceManagerRef.current.destroy();
+      }
+      if (secretDetectorRef.current) {
+        secretDetectorRef.current.reset();
       }
     };
   }, []);
@@ -1631,7 +1680,7 @@ const Home: React.FC = () => {
             <div className="quick-insight-card">
               <div className="insight-header">
                 <h4>Health Map</h4>
-                <div className="health" style={{ color: getAQIColor(airQualityData?.aqi || 0) }}>
+                <div className="health" style={{ color: getAQIColor(airQualityData?.aqi || 0), position: 'relative', cursor: 'pointer' }} onClick={handleHeartIconClick}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"/>
               </svg>
