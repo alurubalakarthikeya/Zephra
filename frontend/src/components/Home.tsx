@@ -133,8 +133,6 @@ const Home: React.FC = () => {
   // Real API endpoints - Now connected to FastAPI backend
   // Unified data fetching - Now uses BackendModeManager for API/Mock switching
   const fetchAirQualityData = async () => {
-    console.log('🚀 Starting fetchAirQualityData for location:', currentLocation);
-    
     try {
       setLoading(true);
       
@@ -144,7 +142,6 @@ const Home: React.FC = () => {
       }
       
       const data = await backendManagerRef.current.fetchDashboardData(currentLocation, userLocation || undefined);
-      console.log('✅ Data fetched via BackendModeManager:', data);
       
       if (data.success && data.air_quality && data.air_quality.length > 0) {
         // Get the latest air quality data
@@ -163,7 +160,6 @@ const Home: React.FC = () => {
           status: getAQIStatus(Number(latestData.aqi) || 0)
         };
         
-        console.log('📍 Setting air quality data:', realData);
         setAirQualityData(realData);
         
         // Extract trend data from historical air quality data
@@ -193,7 +189,6 @@ const Home: React.FC = () => {
             visibility: Number(latestWeather.visibility) || 0,
             windDirection: latestWeather.windDirection || 'N/A'
           };
-          console.log('🌤️ Setting weather data:', realWeatherData);
           setWeatherData(realWeatherData);
         } else {
           // Set fallback weather data
@@ -216,7 +211,6 @@ const Home: React.FC = () => {
           await serviceManagerRef.current.handleAirQualityUpdate(realData);
         }
         
-        console.log('✅ Data fetched and processed successfully');
       } else {
         throw new Error('Invalid data format received from backend');
       }
@@ -1147,13 +1141,11 @@ const Home: React.FC = () => {
         // Initialize all services
         await serviceManagerRef.current.initialize();
         await serviceManagerRef.current.getStatus();
-        console.log('✅ Service Manager initialized successfully');
         
         // Initialize Backend Mode Manager
         backendManagerRef.current = BackendModeManager.getInstance();
         const currentMode = backendManagerRef.current.getCurrentMode();
         setBackendMode(currentMode);
-        console.log(`✅ Backend Mode Manager initialized (mode: ${currentMode.toUpperCase()})`);
         
         // Initialize Notification Service
         notificationServiceRef.current = NotificationService.getInstance();
@@ -1161,20 +1153,14 @@ const Home: React.FC = () => {
         // Request notification permission
         try {
           const permission = await notificationServiceRef.current.requestPermission();
-          console.log(`📱 Notification permission: ${permission}`);
         } catch (error) {
-          console.warn('Failed to request notification permission:', error);
+          // Notification permission not granted
         }
-        console.log('✅ Notification Service initialized successfully');
         
         // Initialize Secret Click Detector
-        console.log('🔧 Initializing Secret Click Detector...');
         secretDetectorRef.current = new ClickHandler(
           async () => {
-            console.log('🎉 SECRET BACKEND SWITCH ACTIVATED!');
-            
             if (!backendManagerRef.current || !notificationServiceRef.current) {
-              console.error('Backend services not initialized');
               return;
             }
 
@@ -1190,14 +1176,13 @@ const Home: React.FC = () => {
               await fetchAirQualityData();
               
             } catch (error) {
-              console.error('Error during backend switch:', error);
+              // Silent error handling
             }
           },
           () => {
             // No visual feedback needed
           }
         );
-        console.log('✅ Secret Click Detector initialized successfully');
         
       } catch (error) {
         console.error('❌ Failed to initialize services:', error);
@@ -1252,8 +1237,6 @@ const Home: React.FC = () => {
     // If no data after 2 seconds, force fallback data
     const fallbackTimer = setTimeout(() => {
       if (!airQualityData || !weatherData) {
-        console.log('⚠️ Forcing fallback data due to timeout');
-        
         if (!airQualityData) {
           const fallbackAQI: AirQualityData = {
             aqi: 65,
