@@ -107,15 +107,27 @@ class DataProvider {
         windDirection: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.floor(Math.random() * 8)]
       })),
       
-      // Satellite data (24 hours)
-      satellite: Array.from({ length: 24 }, (_, i) => ({
-        timestamp: new Date(now.getTime() - (23 - i) * 60 * 60 * 1000).toISOString(),
-        aerosol_optical_depth: Math.round((0.1 + Math.random() * 0.5) * 1000) / 1000,
-        cloud_fraction: Math.round(Math.random() * 100),
-        surface_reflectance: Math.round((0.1 + Math.random() * 0.3) * 1000) / 1000,
-        visibility: Math.round(8 + Math.random() * 7),
-        uv_index: Math.round(1 + Math.random() * 10)
-      })),
+      // Satellite data (24 hours) - Enhanced with realistic correlations
+      satellite: Array.from({ length: 24 }, (_, i) => {
+        const hour = (new Date().getHours() - (23 - i)) % 24;
+        
+        // Create realistic cloud cover patterns (more clouds in early morning/late evening)
+        const baseCloudCover = 40 + Math.sin(hour / 12 * Math.PI) * 20; // Daily pattern
+        const weatherVariation = Math.random() * 30 - 15; // Random weather variation
+        const cloudCover = Math.max(0, Math.min(100, Math.round(baseCloudCover + weatherVariation)));
+        
+        // Correlate other metrics with cloud cover
+        const cloudFactor = cloudCover / 100;
+        
+        return {
+          timestamp: new Date(now.getTime() - (23 - i) * 60 * 60 * 1000).toISOString(),
+          aerosol_optical_depth: Math.round((0.15 + Math.random() * 0.4 + cloudFactor * 0.1) * 1000) / 1000,
+          cloud_cover: cloudCover, // Enhanced realistic cloud cover with daily patterns
+          surface_reflectance: Math.round((0.1 + Math.random() * 0.3 + cloudFactor * 0.2) * 1000) / 1000,
+          visibility: Math.max(1, Math.round(8 + Math.random() * 7 - (cloudCover / 15))), // Visibility decreases with cloud cover
+          uv_index: Math.max(0, Math.round((1 + Math.random() * 10) * (1 - cloudCover / 150))) // UV decreases with clouds
+        };
+      }),
       
       // Health data (24 hours)
       health: Array.from({ length: 24 }, (_, i) => {
