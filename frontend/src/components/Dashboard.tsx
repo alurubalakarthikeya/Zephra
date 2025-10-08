@@ -266,25 +266,11 @@ const Dashboard: React.FC = () => {
         timezone: "Australia/Sydney",
       },
       {
-        name: "Delhi",
-        lat: 28.7041,
-        lon: 77.1025,
-        country: "India",
-        timezone: "Asia/Kolkata",
-      },
-      {
         name: "Berlin",
         lat: 52.52,
         lon: 13.405,
         country: "Germany",
         timezone: "Europe/Berlin",
-      },
-      {
-        name: "Mumbai",
-        lat: 19.076,
-        lon: 72.8777,
-        country: "India",
-        timezone: "Asia/Kolkata",
       },
       {
         name: "Paris",
@@ -668,7 +654,7 @@ const Dashboard: React.FC = () => {
             <div className="status-card">
               <span className="status-label">API Status</span>
               <span className="status-value">
-                {data?.status.api_status || "Connected"}
+                Connected
               </span>
             </div>
             <div className="status-card">

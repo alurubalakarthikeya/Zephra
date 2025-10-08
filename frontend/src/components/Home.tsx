@@ -1445,7 +1445,6 @@ const Home: React.FC = () => {
                 <option value="London">London</option>
                 <option value="Tokyo">Tokyo</option>
                 <option value="Sydney">Sydney</option>
-                <option value="Delhi">Delhi</option>
                 <option value="Berlin">Berlin</option>
                 <option value="Paris">Paris</option>
                 <option value="Singapore">Singapore</option>
